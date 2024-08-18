@@ -29,6 +29,7 @@ func (session *Session) ReceiveNewClient() {
 		new_client_conn := <-session.SessionMainChannel
         NewClientObj:=session.New_Client(new_client_conn,Client_Count)
 		go NewClientObj.StartClient()
+		NewClientObj.addnewclient()
 		session.AllClientMap[Client_Count]=NewClientObj
 		Client_Count+=1
 		
@@ -97,11 +98,11 @@ func (session *Session) MaintainSession() {
 	// and all of this done in for loop which continiously runing and take care of locks , mutex requrement
 	
 	for{
-		receivedMessage := <-session.Synch_Channel
+		receivedMessage := <- (session.Synch_Channel)
 
 		// Split the received message into message type and payload.
 		msg:=fmt.Sprintf("%s",receivedMessage)
-		parts := strings.SplitN(string(receivedMessage), "|", 2)
+		parts := strings.SplitN(string(receivedMessage), "^", 2)
 		if len(parts) != 2 {
 			log.Println("Invalid message format")
 			return
@@ -156,6 +157,7 @@ func IntializeSession(conn_with_terminal *websocket.Conn, Id int) *Session {
 		Terminal_conn: conn_with_terminal,
 		SessionMainChannel: make(chan *websocket.Conn),
 		Terminal_Channel: make(chan []byte),
+		Synch_Channel: make(chan []byte),
 	}
 	go Session_obj.TerminalRead()
 	go Session_obj.TerminalWrite()
