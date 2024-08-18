@@ -86,7 +86,7 @@ func main(){
 
 	// Create an instance of AllSessionManager and initialize the map
 	Manager_obj := &AllSessionManager{
-		AllSessionMap: myMap,
+		AllSessionMap: myMap, 
 		total_sessions :0,
 	}
 	router := chi.NewRouter()

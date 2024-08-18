@@ -1,8 +1,13 @@
 package main
 
 import (
-	"github.com/gorilla/websocket"
+	"fmt"
 	"log"
+	_ "math/rand"
+	"strconv"
+	"strings"
+
+	"github.com/gorilla/websocket"
 )
 
 type Session struct {
@@ -10,6 +15,8 @@ type Session struct {
 	AllClientMap map[int]*Client
 	// room url
 	// Redis in memory database
+	MemoryDatabase map[int]string
+	SequenceNo int
 	Terminal_conn *websocket.Conn
 	SessionMainChannel chan *websocket.Conn
 	Terminal_Channel chan []byte
@@ -18,9 +25,10 @@ type Session struct {
 func (session *Session) ReceiveNewClient() {
 	Client_Count:=0
 	for {
+		
 		new_client_conn := <-session.SessionMainChannel
         NewClientObj:=session.New_Client(new_client_conn,Client_Count)
-		NewClientObj.StartClient()
+		go NewClientObj.StartClient()
 		session.AllClientMap[Client_Count]=NewClientObj
 		Client_Count+=1
 		
@@ -41,9 +49,10 @@ func (session *Session) TerminalRead() {
 			}
 			log.Println("MessageType: ", messageType)
 			log.Println("Payload: ", string(payload))
-
-			
-			//session.Synch_Channel<-payload   // this has to be handle properly
+           // 1 for terminal output data
+			messageStr := fmt.Sprintf("%d^%s", 1, payload)
+            combinedMessage := []byte(messageStr)
+			session.Synch_Channel<-combinedMessage   // this has to be handle properly
 
 
 			// now instead of printing i have to save this message first in the session database in Redis along with new sequence number for this chunk
@@ -87,12 +96,61 @@ func (session *Session) MaintainSession() {
 
 	// and all of this done in for loop which continiously runing and take care of locks , mutex requrement
 	
+	for{
+		receivedMessage := <-session.Synch_Channel
+
+		// Split the received message into message type and payload.
+		msg:=fmt.Sprintf("%s",receivedMessage)
+		parts := strings.SplitN(string(receivedMessage), "|", 2)
+		if len(parts) != 2 {
+			log.Println("Invalid message format")
+			return
+		}
+
+		// Convert the message type back to an int.
+		receivedMessageType, err := strconv.Atoi(parts[0])
+		if err != nil {
+			log.Printf("Invalid message type: %v", err)
+			return
+		}
+
+		// The payload is the second part.
+
+		//receivedPayload := []byte(parts[1])
+		session.SequenceNo=session.SequenceNo+1
+		// saved in database along with sequence number
+		session.MemoryDatabase[session.SequenceNo]=msg
+
+		session.Notify_all()
+        // i need here asynchronous thing
+		if receivedMessageType==2 { // this is for giving command to terminal to run it
+			receivedPayload := []byte(parts[1])
+			session.Terminal_Channel<-receivedPayload
+		}
+
+
+
+
+
+	}
 
 }
+func (session *Session) Notify_all() {
 
+	st:="pass"
+	msg:=[]byte(st)
+	for key, value := range session.AllClientMap {
+        value.Client_Channel<-msg
+		fmt.Println(key)
+    }
+
+}
 func IntializeSession(conn_with_terminal *websocket.Conn, Id int) *Session {
 	myMap := make(map[int]*Client)
+	databasemap := make(map[int]string)
 	Session_obj := &Session{
+		SequenceNo: 0,
+		MemoryDatabase: databasemap,
 		AllClientMap: myMap,
 		SessionId:     Id,
 		Terminal_conn: conn_with_terminal,

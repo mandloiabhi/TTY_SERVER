@@ -1,7 +1,7 @@
 package main
 import (
 	_"encoding/json"
-	_"fmt"
+	"fmt"
 	"log"
 	_"net/http"
 	_"os"
@@ -52,6 +52,11 @@ func (client *Client) ReadClient() {
 		}
 		log.Println("MessageType: ", messageType)
 		log.Println("Payload: ", string(payload))
+         // 2 for the output for the command from client
+		messageStr := fmt.Sprintf("%d^%s", 2, payload)
+        combinedMessage := []byte(messageStr)
+		client.session.Synch_Channel<-combinedMessage  
+
 		// client.session.Synch_Channel<-payload // this has to be handle properly as data type etc
 
 		// basically messageType will be either command or some thing else
@@ -84,4 +89,8 @@ func (client *Client) WriteClient() {
 			log.Println("sent command to channel")
 		}
 	}
+}
+
+func (client *Client) Synchronize() {
+	
 }
