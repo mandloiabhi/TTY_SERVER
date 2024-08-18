@@ -1,18 +1,19 @@
 package main
+
 import (
-	_"encoding/json"
+	_ "encoding/json"
 	"fmt"
 	"log"
-	_"net/http"
-	_"os"
-	_"os/exec"
-	_"runtime/pprof"
-	_"strconv"
-	_"syscall"
-
-	_"github.com/creack/pty"
-	_"github.com/go-chi/chi/v5"
-	_"github.com/go-chi/cors"
+	_ "net/http"
+	_ "os"
+	_ "os/exec"
+	_ "runtime/pprof"
+	_ "strconv"
+	_ "syscall"
+    "strings"
+	_ "github.com/creack/pty"
+	_ "github.com/go-chi/chi/v5"
+	_ "github.com/go-chi/cors"
 	"github.com/gorilla/websocket"
 )
 
@@ -83,6 +84,11 @@ func (client *Client) WriteClient() {
 				return
 			}
 			// Write a Regular text message to the connection
+			var values []string 
+			values = client.Synchronize()
+			combinedString := strings.Join(values, "")
+			message_string:=fmt.Sprintf("%d^%s",5, combinedString)
+            message=[]byte(message_string)
 			if err := client.Client_conn.WriteMessage(websocket.TextMessage, message); err != nil {
 				log.Println(err)
 			}
@@ -91,6 +97,20 @@ func (client *Client) WriteClient() {
 	}
 }
 
-func (client *Client) Synchronize() {
-	
+func (client *Client) Synchronize() []string {
+
+	givenInt := client.LastSequenceNumber+1
+
+	// Slice to store values with keys greater than the given integer.
+	var values []string
+
+	// Iterate over the map.  
+	// i have to optimize it so it iterates from given seesion number
+	for key, value := range client.session.MemoryDatabase {
+		if key > givenInt {
+			values = append(values, value)
+		}
+	}
+	return values
+
 }
