@@ -15,8 +15,8 @@ code for removing client is remaining
  
 code for closing session , clients for that session and closeing all goroutines associted with that thread is remaining and cleaning or erasing memory
 
-code for connecting with  terminal server , clients frontend , and this TTY_Server is remaining
+~~code for connecting with  terminal server , clients frontend , and this TTY_Server is remaining~~
 
-so i am able to connect terminal, client frontend, tty server locally now i have to open 3,4 clients on browser
+~~so i am able to connect terminal, client frontend, tty server locally now i have to open 3,4 clients on browser~~
 
 sudo command is not working so i have to handle that thing
