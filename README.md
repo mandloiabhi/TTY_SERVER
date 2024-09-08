@@ -28,3 +28,12 @@ command for running client frontend : python3 -m http.server 8000
 i think with url to join the room , the url can contain the room id so when request comes from a client ,it will also contain the room id , so in central server go we can write a function to parse request or get that room id
 
 code for the ping pong is remaining which is to check wether the client is connected or not  // or for now we can handle at time of sending or receiving any message from websocket connection so whenever this type of case happens a notify will triger new event of removing this client from the all dashboard and also removing from all datastructures of the backend.
+
+
+1) add redis functionality using container to work as database  , this also involves for managing seession and logic for clients 
+2) then decide and implement logic for removing or crunching data from redis to avoid memeory full problem
+3) add code to remove client or close client 
+4) similarly for removing sessions or rooms
+5) or add the functionality to work with url
+6) manage properly necessary data and correct formatted get send to client and at frontend client or arranges data properly
+
