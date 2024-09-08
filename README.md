@@ -20,3 +20,11 @@ code for closing session , clients for that session and closeing all goroutines 
 ~~so i am able to connect terminal, client frontend, tty server locally now i have to open 3,4 clients on browser~~
 
 sudo command is not working so i have to handle that thing
+
+managing giving unique id to client as well as the new rooms
+
+command for running client frontend : python3 -m http.server 8000
+
+i think with url to join the room , the url can contain the room id so when request comes from a client ,it will also contain the room id , so in central server go we can write a function to parse request or get that room id
+
+code for the ping pong is remaining which is to check wether the client is connected or not  // or for now we can handle at time of sending or receiving any message from websocket connection so whenever this type of case happens a notify will triger new event of removing this client from the all dashboard and also removing from all datastructures of the backend.
